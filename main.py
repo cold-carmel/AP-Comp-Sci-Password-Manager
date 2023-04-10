@@ -2,10 +2,11 @@ import random
 import time
 import os
 from getpass import getpass
-import math
+import pyperclip as pc
 
 accLoop = True
 asciiNums = []
+
 
 def createAccount():
     print('Are you sure? Creation of a new account wipes all data of the previous account.')
@@ -17,7 +18,6 @@ def createAccount():
         os.system('cls')
         os.remove('MasterPass.txt')
         os.remove('UserPassData.txt')
-        os.remove('WebsiteData.txt')
         print('removed files')
         while True:
             newPass = getpass('Input the new Master Password for the new account:\n')
@@ -26,9 +26,10 @@ def createAccount():
             if newPass == confirm:
                 open('MasterPass.txt', 'x')
                 open('UserPassData.txt', 'x')
-                open('WebsiteData.txt', 'x')
                 mPass = open('MasterPass.txt', 'w')
                 mPass.write(encrypt(newPass))
+                passDataSetup = open('UserPassData.txt', 'w')
+                passDataSetup.write('7b567d27')
                 print('Success! New account created.')
 
                 os.system('cls')
@@ -86,9 +87,10 @@ def mainMenu():
     elif menuSelection == '1':
       return 'new'
     elif menuSelection == '2':
+      print('viewing?')
       return 'view'
     elif menuSelection == '3':
-      return 'delete'
+      return 'del'
     else:
       exit()
 # login sequence   
@@ -108,43 +110,122 @@ os.system('cls')
 while True:
   passInput = getpass('Please input the Master Password:\n')
   if passInput == decrypt(open('MasterPass.txt', 'r').read()):
+    os.system('cls')
     print('Logging in')
     time.sleep(0.5)
+    os.system('cls')
     print('Logging in.')
     time.sleep(0.5)
+    os.system('cls')
     print('Logging in..')
     time.sleep(0.5)
+    os.system('cls')
     print('Logging in...')
     time.sleep(0.5)
+    os.system('cls')
     break
   else:
     print('Incorrect password, please try again.')
     time.sleep(1)
     os.system('cls')
-menuSelect = mainMenu()
-if menuSelect == 'new':
-  passDataRead = open('UserPassData.txt', 'r')
-  print(passDataRead)
-  passDatatemp = passDataRead.read()
-  print(passDatatemp)
-  passData = decrypt(passDatatemp)
-  print(passData)
-  passDict = eval(passData)
-  print(passDict)
-  print(f'passDataRead: {passData}')
-  passDataWrite = open('UserPassData.txt', 'w')
-  websiteInput = input('What website is the password for?\n').lower()
-  websiteUsername = input(f'What is the Username for {websiteInput}?\n')
-  websitePassword = getpass(f'What is the Password for {websiteInput}?\n')
-  print(passData)
-  print(passDict)
-  newPassDict = {'website' : websiteInput,
-                'username' : websiteUsername,
-                'password' : websitePassword}
-  passDict[websiteInput] = newPassDict
-  print(passDict)
-  passDataWrite.write(encrypt(str(passDict)))
-  print('Password data saved!')
-  time.sleep(2)
-  mainMenu()
 
+while True:
+  menuSelect = mainMenu()
+  os.system('cls')
+  if menuSelect == 'new':
+    passDataRead = open('UserPassData.txt', 'r')
+    passData = passDataRead.read()
+    passData = decrypt(passData)
+    passDict = eval(passData)
+    while True:
+      websiteInput = input('What Website is the password for?\n').lower()
+      if websiteInput in passDict:
+          print(f'The website {websiteInput} already has an input. If you would like to edit it, delete it and create a new one')
+          time.sleep(3)
+          break
+      os.system('cls')
+      websiteUsername = input(f'What is the Username for {websiteInput}?\n')
+      websitePassword = input(f'What is the Password for {websiteInput}?\n')
+      newPassDict = {'website' : websiteInput,
+                    'username' : websiteUsername,
+                    'password' : websitePassword}
+      passDict[websiteInput] = newPassDict
+      passDataWrite = open('UserPassData.txt', 'w')
+      passDataWrite.write(encrypt(str(passDict)))
+      print('Password data saved!')
+      time.sleep(2)
+      passDataWrite.close()
+      passDataRead.close()
+      break
+  if menuSelect == 'view':
+    passDataRead = open('UserPassData.txt', 'r')
+    passData = passDataRead.read()
+    passData = decrypt(passData)
+    passDict = eval(passData)
+    websiteList = []
+    for i in passDict:
+       websiteList.append(i)
+    while True:
+      os.system('cls')    
+      print('Select one:')
+      for num, website in enumerate(websiteList):
+        print(f'[{num+1}] {website}')
+      menuSelect = input()
+      try:
+         menuSelect = int(menuSelect)
+      except ValueError:
+         print('Invalid input')
+         continue
+      if menuSelect > len(websiteList) or menuSelect < 1:
+        print('Invalid Input')
+        continue
+      else:
+        os.system('cls')
+        websitePassReq = websiteList[menuSelect-1]
+        username = passDict[websitePassReq]['username']
+        password = passDict[websitePassReq]['password']
+        pc.copy(password)
+        print(f'Website: {websitePassReq}\nUsername: {username}\nPassword: Copied to clipboard')
+        print('Click enter when you are finished')
+        getpass('')
+        passDataRead.close()
+        break
+  if menuSelect == 'del':
+    passDataRead = open('UserPassData.txt', 'r')
+    passData = passDataRead.read()
+    passData = decrypt(passData)
+    passDict = eval(passData)
+    websiteList = []
+    for i in passDict:
+       websiteList.append(i)
+    while True:
+      print('Select one to delete:')
+      for num, website in enumerate(websiteList):
+        print(f'[{num+1}] {website}')
+      menuSelect = input()
+      try:
+         menuSelect = int(menuSelect)
+      except ValueError:
+         print('Invalid input')
+         continue
+      if menuSelect > len(websiteList) or menuSelect < 1:
+        print('Invalid Input')
+        continue
+      else:
+        break
+    confirm = input('Are you sure you want to delete this? This action can not be undone.\n(Type "Yes" to confirm)\n')
+    if confirm != 'Yes':
+      print('Aborting...')
+      time.sleep(2)
+    else:
+      websitePassDel = websiteList[menuSelect-1]
+      del passDict[websitePassDel]
+      passDataWrite = open('UserPassData.txt', 'w')
+      passDataWrite.write(encrypt(str(passDict)))
+      passDataWrite.close()
+      print('Entry Deleted!')
+      time.sleep(2)
+    passDataWrite.close()
+    passDataRead.close()
+
+      
