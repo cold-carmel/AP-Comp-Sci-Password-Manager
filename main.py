@@ -3,6 +3,8 @@ import time
 import os
 from getpass import getpass
 import pyperclip as pc
+import platform
+
 
 accLoop = True
 asciiNums = []
@@ -10,19 +12,19 @@ asciiNums = []
 
 def createAccount():
     print('Are you sure? Creation of a new account wipes all data of the previous account.')
-    time.sleep(5)
+    time.sleep(3)
     confirm = input('Type out: "New Account" (case-sensitive) in order to create a new accout\n')
     if confirm != 'New Account':
         return
     else:
-        os.system('cls')
+        clearConsole()
         os.remove('MasterPass.txt')
         os.remove('UserPassData.txt')
         print('removed files')
         while True:
-            newPass = getpass('Input the new Master Password for the new account:\n')
-            os.system('cls')
-            confirm = getpass('Confirm the Master Password by typing the same one again:\n')
+            newPass = getpass('Input the new Master Password for the new account:\n', show='•')
+            clearConsole()
+            confirm = getpass('Confirm the Master Password by typing the same one again:\n', show='•')
             if newPass == confirm:
                 open('MasterPass.txt', 'x')
                 open('UserPassData.txt', 'x')
@@ -32,10 +34,10 @@ def createAccount():
                 passDataSetup.write('7b567d27')
                 print('Success! New account created.')
 
-                os.system('cls')
+                clearConsole()
                 break
             else:
-                os.system('cls')
+                clearConsole()
                 print('The passwords do not match up.')
                 continue
 
@@ -73,7 +75,7 @@ def decrypt(data):
     return str(decryptedData)
 
 def mainMenu():
-  os.system('cls')
+  clearConsole()
   while True:
     menuSelection = str(input('''What whould you like to do?
     [1] Create new entry
@@ -93,9 +95,15 @@ def mainMenu():
       return 'del'
     else:
       exit()
-# login sequence   
- 
+  
+def clearConsole():
+  operatingSystem = platform.system()
+  if operatingSystem == 'Windows':
+    return os.system('cls')
+  else:
+    return os.system('clear')
 
+# login sequence 
 while True:
     newAcc = input('Are you a new user?\n[Y] Yes, I am a new user\n[N] No, I am not a new user\n').lower()
     if newAcc not in {'y', 'n'}:
@@ -106,32 +114,32 @@ while True:
         continue
     if newAcc == 'n':
         break
-os.system('cls')
+clearConsole()
 while True:
-  passInput = getpass('Please input the Master Password:\n')
+  passInput = getpass('Please input the Master Password:\n', show='•')
   if passInput == decrypt(open('MasterPass.txt', 'r').read()):
-    os.system('cls')
+    clearConsole()
     print('Logging in')
     time.sleep(0.5)
-    os.system('cls')
+    clearConsole()
     print('Logging in.')
     time.sleep(0.5)
-    os.system('cls')
+    clearConsole()
     print('Logging in..')
     time.sleep(0.5)
-    os.system('cls')
+    clearConsole()
     print('Logging in...')
     time.sleep(0.5)
-    os.system('cls')
+    clearConsole()
     break
   else:
     print('Incorrect password, please try again.')
     time.sleep(1)
-    os.system('cls')
+    clearConsole()
 
 while True:
   menuSelect = mainMenu()
-  os.system('cls')
+  clearConsole()
   if menuSelect == 'new':
     passDataRead = open('UserPassData.txt', 'r')
     passData = passDataRead.read()
@@ -143,9 +151,9 @@ while True:
           print(f'The website {websiteInput} already has an input. If you would like to edit it, delete it and create a new one')
           time.sleep(3)
           break
-      os.system('cls')
+      clearConsole()
       websiteUsername = input(f'What is the Username for {websiteInput}?\n')
-      websitePassword = input(f'What is the Password for {websiteInput}?\n')
+      websitePassword = getpass(f'What is the Password for {websiteInput}?\n', show='•')
       newPassDict = {'website' : websiteInput,
                     'username' : websiteUsername,
                     'password' : websitePassword}
@@ -166,11 +174,14 @@ while True:
     for i in passDict:
        websiteList.append(i)
     while True:
-      os.system('cls')    
+      clearConsole()    
       print('Select one:')
       for num, website in enumerate(websiteList):
         print(f'[{num+1}] {website}')
+      print('[B] Go back')
       menuSelect = input()
+      if menuSelect == 'B':
+        break
       try:
          menuSelect = int(menuSelect)
       except ValueError:
@@ -180,7 +191,7 @@ while True:
         print('Invalid Input')
         continue
       else:
-        os.system('cls')
+        clearConsole()
         websitePassReq = websiteList[menuSelect-1]
         username = passDict[websitePassReq]['username']
         password = passDict[websitePassReq]['password']
@@ -202,7 +213,12 @@ while True:
       print('Select one to delete:')
       for num, website in enumerate(websiteList):
         print(f'[{num+1}] {website}')
+      print('[B] Go back')
       menuSelect = input()
+      if menuSelect == 'B':
+        goBack = True
+        break
+      goBack = False
       try:
          menuSelect = int(menuSelect)
       except ValueError:
@@ -213,10 +229,11 @@ while True:
         continue
       else:
         break
-    confirm = input('Are you sure you want to delete this? This action can not be undone.\n(Type "Yes" to confirm)\n')
-    if confirm != 'Yes':
-      print('Aborting...')
-      time.sleep(2)
+      if goBack == False:
+        confirm = input('Are you sure you want to delete this? This action can not be undone.\n(Type "Yes" to confirm)\n')
+        if confirm != 'Yes':
+          print('Aborting...')
+          time.sleep(2)
     else:
       websitePassDel = websiteList[menuSelect-1]
       del passDict[websitePassDel]
@@ -225,7 +242,4 @@ while True:
       passDataWrite.close()
       print('Entry Deleted!')
       time.sleep(2)
-    passDataWrite.close()
     passDataRead.close()
-
-      
