@@ -13,6 +13,9 @@ def createAccount():
     print('Are you sure? Creation of a new account wipes all data of the previous account.') # this confirms with the user they want to make a new account
     time.sleep(2)
     confirm = input('Type out: "New Account" (case-sensitive) in order to create a new account\n') # type in confirmation
+    print('Are you sure? Creation of a new account wipes all data of the previous account.')
+    time.sleep(3)
+    confirm = input('Type out: "New Account" (case-sensitive) in order to create a new accout\n')
     if confirm != 'New Account':
         clearConsole()
         return
@@ -22,6 +25,10 @@ def createAccount():
           os.remove('MasterPass.txt')
         if os.path.exists('UserPassData.txt') == True: # if the file exists, it removes it
           os.remove('UserPassData.txt')
+        clearConsole()
+        os.remove('MasterPass.txt')
+        os.remove('UserPassData.txt')
+        print('removed files')
         while True:
             newPass = pwinput.pwinput('Input the new Master Password for the new account:\n') # creates the password for the new account
             clearConsole()
@@ -33,13 +40,27 @@ def createAccount():
                 mPass.write(encrypt(newPass)) # writes the encrypted Master Password to the file
                 passDataSetup = open('UserPassData.txt', 'w') # opens the 'UserPassData.txt' file
                 passDataSetup.write('7b567d27') # this string of text adds the necessary data to the UserPassData.txt file to make an encrypted dictionary
+            newPass = getpass('Input the new Master Password for the new account:\n', show='•')
+            clearConsole()
+            confirm = getpass('Confirm the Master Password by typing the same one again:\n', show='•')
+            if newPass == confirm:
+                open('MasterPass.txt', 'x')
+                open('UserPassData.txt', 'x')
+                mPass = open('MasterPass.txt', 'w')
+                mPass.write(encrypt(newPass))
+                passDataSetup = open('UserPassData.txt', 'w')
+                passDataSetup.write('7b567d27')
                 print('Success! New account created.')
                 time.sleep(2)
+                clearConsole()
+
                 clearConsole()
                 break
             else:
                 clearConsole()
                 print('The passwords do not match up.') # if the confirm password doesn't match, try again
+                clearConsole()
+                print('The passwords do not match up.')
                 continue
 
 def encrypt(data):
@@ -76,6 +97,8 @@ def decrypt(data):
     return str(decryptedData)
 
 def mainMenu(): # this is the function that brings the user to the selection menu to actually do things in the program
+def mainMenu():
+  clearConsole()
   while True:
     clearConsole()
     menuSelection = str(input('''What would you like to do?
@@ -111,9 +134,18 @@ def openPassData():
   passDataRead.close() # closes the file to prevent possible corruption
   return eval(passData) # turns the decrypted data into a nested dictionary with all the password entries
 
+  
+def clearConsole():
+  operatingSystem = platform.system()
+  if operatingSystem == 'Windows':
+    return os.system('cls')
+  else:
+    return os.system('clear')
 
 clearConsole()
 while True: # starts the login sequence
+# login sequence 
+while True:
     newAcc = input('Are you a new user?\n[Y] Yes, I am a new user\n[N] No, I am not a new user\n').lower()
     if newAcc not in {'y', 'n'}:
         print('Invalid Input')
@@ -129,6 +161,9 @@ clearConsole()
 while True:
   passInput = pwinput.pwinput('Please input the Master Password:\n')
   if passInput == decrypt(open('MasterPass.txt', 'r').read()): # if the input matches up with the decrypted data from the MasterPass.txt file, the user is granted access
+    clearConsole()
+  passInput = getpass('Please input the Master Password:\n', show='•')
+  if passInput == decrypt(open('MasterPass.txt', 'r').read()):
     clearConsole()
     print('Logging in')
     time.sleep(0.5)
@@ -153,6 +188,13 @@ while True:
   clearConsole()
   if menuSelect == 'new': # if the user selects the 'Create New Entry' option, this segment under the if statement is ran
     passDict = openPassData() # grabs the data from the UserPassData.txt file, decrypts it, and formats it into a nested dictionary
+  menuSelect = mainMenu()
+  clearConsole()
+  if menuSelect == 'new':
+    passDataRead = open('UserPassData.txt', 'r')
+    passData = passDataRead.read()
+    passData = decrypt(passData)
+    passDict = eval(passData)
     while True:
       websiteInput = input('What Website is the password for?\n').lower() # queries for the website of the password, makes the input all lowercase for no case-sensitivity
       if websiteInput in passDict: # if the inputted password already has an entry, it tells the user that an existing entry with that same name already exists
@@ -161,6 +203,9 @@ while True:
           break
       websiteUsername = input(f'What is the Username for {websiteInput}?\n') # grabs the username for the entry
       websitePassword = pwinput.pwinput(f'What is the Password for {websiteInput}?\n') # grabs the password in a protected manner ('password' would show up in console as '********')
+      clearConsole()
+      websiteUsername = input(f'What is the Username for {websiteInput}?\n')
+      websitePassword = getpass(f'What is the Password for {websiteInput}?\n', show='•')
       newPassDict = {'website' : websiteInput,
                     'username' : websiteUsername,
                     'password' : websitePassword} # a new nested dictionary is made with the data inputted by the user
@@ -180,12 +225,20 @@ while True:
       clearConsole()    
       print('Select one:') # selection menu for viewing a password
       for num, website in enumerate(websiteList): # prints the website and a number assigned with it to make a convenient selection system
+      clearConsole()    
+      print('Select one:')
+      for num, website in enumerate(websiteList):
         print(f'[{num+1}] {website}')
       print('[B] Go back')
       menuSelect = input().lower()
       if menuSelect == 'b': # the user can exit by typing 'b'
         break
       try: # if the input isn't a number, it returns 'Invalid Input'
+      print('[B] Go back')
+      menuSelect = input()
+      if menuSelect == 'B':
+        break
+      try:
          menuSelect = int(menuSelect)
       except ValueError:
          print('Invalid input')
@@ -219,6 +272,13 @@ while True:
         break
       goBack = False
       try:  # if the input isn't a number, it returns 'Invalid Input'
+      print('[B] Go back')
+      menuSelect = input()
+      if menuSelect == 'B':
+        goBack = True
+        break
+      goBack = False
+      try:
          menuSelect = int(menuSelect)
       except ValueError:
         print('Invalid input')
@@ -243,3 +303,17 @@ while True:
         passDataWrite.close() # closes the file
         print('Entry Deleted!')
         time.sleep(2)
+      if goBack == False:
+        confirm = input('Are you sure you want to delete this? This action can not be undone.\n(Type "Yes" to confirm)\n')
+        if confirm != 'Yes':
+          print('Aborting...')
+          time.sleep(2)
+    else:
+      websitePassDel = websiteList[menuSelect-1]
+      del passDict[websitePassDel]
+      passDataWrite = open('UserPassData.txt', 'w')
+      passDataWrite.write(encrypt(str(passDict)))
+      passDataWrite.close()
+      print('Entry Deleted!')
+      time.sleep(2)
+    passDataRead.close()
